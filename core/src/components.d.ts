@@ -27,7 +27,6 @@ import {
   InputChangeEvent,
   ItemHeightFn,
   ItemRenderFn,
-  Knob,
   LoadingOptions,
   Menu,
   MenuChangeEventDetail,
@@ -40,7 +39,6 @@ import {
   PickerColumn,
   PickerOptions,
   PopoverOptions,
-  RangeInputChangeEvent,
   RangeValue,
   RouteID,
   RouterDirection,
@@ -57,6 +55,7 @@ import {
   TabbarLayout,
   TabbarPlacement,
   TextFieldTypes,
+  TextInputChangeEvent,
   ToastOptions,
   TransitionDoneFn,
   TransitionInstruction,
@@ -99,6 +98,10 @@ declare global {
 
     interface IonActionSheet {
       /**
+       * If true, the action sheet will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss': boolean;
+      /**
        * An array of buttons for the action sheet.
        */
       'buttons': ActionSheetButton[];
@@ -110,10 +113,6 @@ declare global {
        * Dismiss the action sheet overlay after it has been presented.
        */
       'dismiss': (data?: any, role?: string | undefined) => Promise<void>;
-      /**
-       * If true, the action sheet will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss': boolean;
       /**
        * Animation to use when the action sheet is presented.
        */
@@ -177,6 +176,10 @@ declare global {
 
     interface IonAlert {
       /**
+       * If true, the alert will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss': boolean;
+      /**
        * Array of buttons to be added to the alert.
        */
       'buttons': (AlertButton | string)[];
@@ -188,10 +191,6 @@ declare global {
        * Dismiss the alert overlay after it has been presented.
        */
       'dismiss': (data?: any, role?: string | undefined) => Promise<void>;
-      /**
-       * If true, the alert will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss': boolean;
       /**
        * Animation to use when the alert is presented.
        */
@@ -467,7 +466,7 @@ declare global {
        */
       'disabled': boolean;
       /**
-       * Set to `"clear"` for a transparent button style.
+       * Set to `"clear"` for a transparent button or to `"solid"` for a filled background. Defaults to `"clear"`.
        */
       'fill': 'clear' | 'solid';
       /**
@@ -485,6 +484,10 @@ declare global {
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color': Color;
+      /**
+       * Set to `"clear"` for a transparent icon or to `"solid"` for a filled background. Defaults to `"clear"`.
+       */
+      'fill': 'clear' | 'solid';
       /**
        * The mode determines which platform styles to use. Possible values are: `"ios"` or `"md"`.
        */
@@ -686,11 +689,11 @@ declare global {
       /**
        * The maximum datetime allowed. Value must be a date string following the [ISO 8601 datetime format standard](https://www.w3.org/TR/NOTE-datetime), `1996-12-19`. The format does not have to be specific to an exact datetime. For example, the maximum could just be the year, such as `1994`. Defaults to the end of this year.
        */
-      'max': string | undefined;
+      'max': string;
       /**
        * The minimum datetime allowed. Value must be a date string following the [ISO 8601 datetime format standard](https://www.w3.org/TR/NOTE-datetime), such as `1996-12-19`. The format does not have to be specific to an exact datetime. For example, the minimum could just be the year, such as `1994`. Defaults to the beginning of the year, 100 years ago from today.
        */
-      'min': string | undefined;
+      'min': string;
       /**
        * Values used to create the list of selectable minutes. By default the mintues range from `0` to `59`. However, to control exactly which minutes to display, the `minuteValues` input can take a number, an array of numbers, or a string of comma separated numbers. For example, if the minute selections should only be every 15 minutes, then this input value would be `minuteValues="0,15,30,45"`.
        */
@@ -707,6 +710,7 @@ declare global {
        * Values used to create the list of selectable months. By default the month values range from `1` to `12`. However, to control exactly which months to display, the `monthValues` input can take a number, an array of numbers, or a string of comma separated numbers. For example, if only summer months should be shown, then this input value would be `monthValues="6,7,8"`. Note that month numbers do *not* have a zero-based index, meaning January's value is `1`, and December's is `12`.
        */
       'monthValues': number[] | number | string;
+      'open': () => Promise<void>;
       /**
        * The format of the date and time picker columns the user selects. A datetime input can have one or many datetime parts, each getting their own column which allow individual selection of that particular datetime part. For example, year and month columns are two individually selectable columns which help choose an exact date from the datetime picker. Each column follows the string parse format. Defaults to use `displayFormat`.
        */
@@ -722,7 +726,7 @@ declare global {
       /**
        * the value of the datetime.
        */
-      'value': string;
+      'value': any;
       /**
        * Values used to create the list of selectable years. By default the year values range between the `min` and `max` datetime inputs. However, to control exactly which years to display, the `yearValues` input can take a number, an array of numbers, or string of comma separated numbers. For example, to show upcoming and recent leap years, then this input's value would be `yearValues="2024,2020,2016,2012,2008"`.
        */
@@ -1189,6 +1193,10 @@ declare global {
 
     interface IonLoading {
       /**
+       * If true, the loading indicator will be dismissed when the backdrop is clicked. Defaults to `false`.
+       */
+      'backdropDismiss': boolean;
+      /**
        * Optional text content to display in the loading indicator.
        */
       'content': string;
@@ -1201,17 +1209,9 @@ declare global {
        */
       'dismiss': (data?: any, role?: string | undefined) => Promise<void>;
       /**
-       * If true, the loading indicator will dismiss when the page changes. Defaults to `false`.
-       */
-      'dismissOnPageChange': boolean;
-      /**
        * Number of milliseconds to wait before dismissing the loading indicator.
        */
       'duration': number;
-      /**
-       * If true, the loading indicator will be dismissed when the backdrop is clicked. Defaults to `false`.
-       */
-      'enableBackdropDismiss': boolean;
       /**
        * Animation to use when the loading indicator is presented.
        */
@@ -1320,7 +1320,7 @@ declare global {
       /**
        * Used to enable or disable the ability to swipe open the menu.
        */
-      'swipeEnable': (shouldEnable: boolean, menuId?: string | undefined) => HTMLIonMenuElement | null;
+      'swipeGesture': (shouldEnable: boolean, menuId?: string | undefined) => HTMLIonMenuElement | null;
       /**
        * Toggle the menu. If it's closed, it will open, and if opened, it will close.
        */
@@ -1368,7 +1368,7 @@ declare global {
       /**
        * If true, swiping the menu is enabled. Default `true`.
        */
-      'swipeEnabled': boolean;
+      'swipeGesture': boolean;
       'toggle': (animated?: boolean) => Promise<boolean>;
       /**
        * The display type of the menu. Available options: `"overlay"`, `"reveal"`, `"push"`.
@@ -1393,6 +1393,10 @@ declare global {
 
     interface IonModal {
       /**
+       * If true, the modal will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss': boolean;
+      /**
        * The component to display inside of the modal.
        */
       'component': ComponentRef;
@@ -1409,10 +1413,6 @@ declare global {
        * Dismiss the modal overlay after it has been presented.
        */
       'dismiss': (data?: any, role?: string | undefined) => Promise<void>;
-      /**
-       * If true, the modal will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss': boolean;
       /**
        * Animation to use when the modal is presented.
        */
@@ -1547,7 +1547,7 @@ declare global {
       /**
        * If the nav component should allow for swipe-to-go-back
        */
-      'swipeBackEnabled': boolean;
+      'swipeGesture': boolean;
     }
 
     interface IonNote {
@@ -1573,6 +1573,10 @@ declare global {
 
     interface IonPicker {
       /**
+       * If true, the picker will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss': boolean;
+      /**
        * Array of buttons to be displayed at the top of the picker.
        */
       'buttons': PickerButton[];
@@ -1592,10 +1596,6 @@ declare global {
        * Number of milliseconds to wait before dismissing the picker.
        */
       'duration': number;
-      /**
-       * If true, the picker will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss': boolean;
       /**
        * Animation to use when the picker is presented.
        */
@@ -1652,6 +1652,10 @@ declare global {
 
     interface IonPopover {
       /**
+       * If true, the popover will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss': boolean;
+      /**
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color': Color;
@@ -1672,10 +1676,6 @@ declare global {
        * Dismiss the popover overlay after it has been presented.
        */
       'dismiss': (data?: any, role?: string | undefined) => Promise<void>;
-      /**
-       * If true, the popover will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss': boolean;
       /**
        * Animation to use when the popover is presented.
        */
@@ -1722,9 +1722,6 @@ declare global {
 
     interface IonRadioGroup {
       'allowEmptySelection': boolean;
-      /**
-       * Indicates that the user cannot interact with the control.
-       */
       'disabled': boolean;
       /**
        * The name of the control, which is submitted with the form data.
@@ -1745,9 +1742,6 @@ declare global {
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color': Color;
-      /**
-       * Indicates that the user cannot interact with the control.
-       */
       'disabled': boolean;
       /**
        * The mode determines which platform styles to use. Possible values are: `"ios"` or `"md"`.
@@ -1763,18 +1757,6 @@ declare global {
       'value': string;
     }
 
-    interface IonRangeKnob {
-      'disabled': boolean;
-      'knob': Knob;
-      'labelId': string;
-      'max': number;
-      'min': number;
-      'pin': boolean;
-      'pressed': boolean;
-      'ratio': number;
-      'value': number;
-    }
-
     interface IonRange {
       /**
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
@@ -1784,9 +1766,6 @@ declare global {
        * How long, in milliseconds, to wait to trigger the `ionChange` event after each change in the range value. Default `0`.
        */
       'debounce': number;
-      /**
-       * Indicates that the user cannot interact with the control.
-       */
       'disabled': boolean;
       /**
        * Show two knobs. Defaults to `false`.
@@ -1893,7 +1872,7 @@ declare global {
 
     interface IonRippleEffect {
       /**
-       * Adds the ripple effect to the parent elment
+       * Adds the ripple effect to the parent element
        */
       'addRipple': (pageX: number, pageY: number) => void;
       'parent': HTMLElement | string;
@@ -2128,6 +2107,7 @@ declare global {
        * The text to display on the ok button. Default: `OK`.
        */
       'okText': string;
+      'open': (ev?: UIEvent | undefined) => Promise<HTMLIonPopoverElement> | Promise<HTMLIonActionSheetElement> | Promise<HTMLIonAlertElement>;
       /**
        * The text to display when the select is empty.
        */
@@ -2290,21 +2270,6 @@ declare global {
       'when': string | boolean;
     }
 
-    interface IonTabButton {
-      'badge': string;
-      'badgeColor': string;
-      'color': Color;
-      'disabled': boolean;
-      'href': string;
-      'icon': string;
-      'label': string;
-      'mode': Mode;
-      /**
-       * If true, the tab button will be selected. Defaults to `false`.
-       */
-      'selected': boolean;
-    }
-
     interface IonTab {
       /**
        * If true, sets the tab as the active tab.
@@ -2339,7 +2304,7 @@ declare global {
        */
       'getTabId': () => string | null;
       /**
-       * The URL which will be used as the `href` within this tab's `<ion-tab-button>` anchor.
+       * The URL which will be used as the `href` within this tab's button anchor.
        */
       'href': string;
       /**
@@ -2467,10 +2432,6 @@ declare global {
        */
       'autocapitalize': string;
       /**
-       * Indicates whether the value of the control can be automatically completed by the browser. Defaults to `"off"`.
-       */
-      'autocomplete': string;
-      /**
        * This Boolean attribute lets you specify that a form control should have input focus when the page loads. Defaults to `false`.
        */
       'autofocus': boolean;
@@ -2549,10 +2510,6 @@ declare global {
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color': Color;
-      /**
-       * The mode determines which platform styles to use. Possible values are: `"ios"` or `"md"`.
-       */
-      'mode': Mode;
     }
 
     interface IonToastController {
@@ -2640,9 +2597,6 @@ declare global {
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color': Color;
-      /**
-       * Indicates that the user cannot interact with the control.
-       */
       'disabled': boolean;
       /**
        * The mode determines which platform styles to use. Possible values are: `"ios"` or `"md"`.
@@ -3227,14 +3181,6 @@ declare global {
     };
     
 
-    interface HTMLIonRangeKnobElement extends StencilComponents.IonRangeKnob, HTMLStencilElement {}
-
-    var HTMLIonRangeKnobElement: {
-      prototype: HTMLIonRangeKnobElement;
-      new (): HTMLIonRangeKnobElement;
-    };
-    
-
     interface HTMLIonRangeElement extends StencilComponents.IonRange, HTMLStencilElement {}
 
     var HTMLIonRangeElement: {
@@ -3419,14 +3365,6 @@ declare global {
     };
     
 
-    interface HTMLIonTabButtonElement extends StencilComponents.IonTabButton, HTMLStencilElement {}
-
-    var HTMLIonTabButtonElement: {
-      prototype: HTMLIonTabButtonElement;
-      new (): HTMLIonTabButtonElement;
-    };
-    
-
     interface HTMLIonTabElement extends StencilComponents.IonTab, HTMLStencilElement {}
 
     var HTMLIonTabElement: {
@@ -3591,7 +3529,6 @@ declare global {
     'ion-popover': JSXElements.IonPopoverAttributes;
     'ion-radio-group': JSXElements.IonRadioGroupAttributes;
     'ion-radio': JSXElements.IonRadioAttributes;
-    'ion-range-knob': JSXElements.IonRangeKnobAttributes;
     'ion-range': JSXElements.IonRangeAttributes;
     'ion-refresher-content': JSXElements.IonRefresherContentAttributes;
     'ion-refresher': JSXElements.IonRefresherAttributes;
@@ -3615,7 +3552,6 @@ declare global {
     'ion-slides': JSXElements.IonSlidesAttributes;
     'ion-spinner': JSXElements.IonSpinnerAttributes;
     'ion-split-pane': JSXElements.IonSplitPaneAttributes;
-    'ion-tab-button': JSXElements.IonTabButtonAttributes;
     'ion-tab': JSXElements.IonTabAttributes;
     'ion-tabbar': JSXElements.IonTabbarAttributes;
     'ion-tabs': JSXElements.IonTabsAttributes;
@@ -3639,6 +3575,10 @@ declare global {
 
     export interface IonActionSheetAttributes extends HTMLAttributes {
       /**
+       * If true, the action sheet will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss'?: boolean;
+      /**
        * An array of buttons for the action sheet.
        */
       'buttons'?: ActionSheetButton[];
@@ -3646,10 +3586,6 @@ declare global {
        * Additional classes to apply for custom CSS. If multiple classes are provided they should be separated by spaces.
        */
       'cssClass'?: string | string[];
-      /**
-       * If true, the action sheet will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss'?: boolean;
       /**
        * Animation to use when the action sheet is presented.
        */
@@ -3714,6 +3650,10 @@ declare global {
 
     export interface IonAlertAttributes extends HTMLAttributes {
       /**
+       * If true, the alert will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss'?: boolean;
+      /**
        * Array of buttons to be added to the alert.
        */
       'buttons'?: (AlertButton | string)[];
@@ -3721,10 +3661,6 @@ declare global {
        * Additional classes to apply for custom CSS. If multiple classes are provided they should be separated by spaces.
        */
       'cssClass'?: string | string[];
-      /**
-       * If true, the alert will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss'?: boolean;
       /**
        * Animation to use when the alert is presented.
        */
@@ -4037,7 +3973,7 @@ declare global {
        */
       'disabled'?: boolean;
       /**
-       * Set to `"clear"` for a transparent button style.
+       * Set to `"clear"` for a transparent button or to `"solid"` for a filled background. Defaults to `"clear"`.
        */
       'fill'?: 'clear' | 'solid';
       /**
@@ -4055,6 +3991,10 @@ declare global {
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color'?: Color;
+      /**
+       * Set to `"clear"` for a transparent icon or to `"solid"` for a filled background. Defaults to `"clear"`.
+       */
+      'fill'?: 'clear' | 'solid';
       /**
        * The mode determines which platform styles to use. Possible values are: `"ios"` or `"md"`.
        */
@@ -4251,11 +4191,11 @@ declare global {
       /**
        * The maximum datetime allowed. Value must be a date string following the [ISO 8601 datetime format standard](https://www.w3.org/TR/NOTE-datetime), `1996-12-19`. The format does not have to be specific to an exact datetime. For example, the maximum could just be the year, such as `1994`. Defaults to the end of this year.
        */
-      'max'?: string | undefined;
+      'max'?: string;
       /**
        * The minimum datetime allowed. Value must be a date string following the [ISO 8601 datetime format standard](https://www.w3.org/TR/NOTE-datetime), such as `1996-12-19`. The format does not have to be specific to an exact datetime. For example, the minimum could just be the year, such as `1994`. Defaults to the beginning of the year, 100 years ago from today.
        */
-      'min'?: string | undefined;
+      'min'?: string;
       /**
        * Values used to create the list of selectable minutes. By default the mintues range from `0` to `59`. However, to control exactly which minutes to display, the `minuteValues` input can take a number, an array of numbers, or a string of comma separated numbers. For example, if the minute selections should only be every 15 minutes, then this input value would be `minuteValues="0,15,30,45"`.
        */
@@ -4279,7 +4219,7 @@ declare global {
       /**
        * Emitted when the value (selected date) has changed.
        */
-      'onIonChange'?: (event: CustomEvent<void>) => void;
+      'onIonChange'?: (event: CustomEvent<InputChangeEvent>) => void;
       /**
        * Emitted when the styles change.
        */
@@ -4299,7 +4239,7 @@ declare global {
       /**
        * the value of the datetime.
        */
-      'value'?: string;
+      'value'?: any;
       /**
        * Values used to create the list of selectable years. By default the year values range between the `min` and `max` datetime inputs. However, to control exactly which years to display, the `yearValues` input can take a number, an array of numbers, or string of comma separated numbers. For example, to show upcoming and recent leap years, then this input's value would be `yearValues="2024,2020,2016,2012,2008"`.
        */
@@ -4545,7 +4485,7 @@ declare global {
       /**
        * Emitted when the value has changed.
        */
-      'onIonChange'?: (event: CustomEvent<InputChangeEvent>) => void;
+      'onIonChange'?: (event: CustomEvent<TextInputChangeEvent>) => void;
       /**
        * Emitted when the input has focus.
        */
@@ -4759,6 +4699,10 @@ declare global {
 
     export interface IonLoadingAttributes extends HTMLAttributes {
       /**
+       * If true, the loading indicator will be dismissed when the backdrop is clicked. Defaults to `false`.
+       */
+      'backdropDismiss'?: boolean;
+      /**
        * Optional text content to display in the loading indicator.
        */
       'content'?: string;
@@ -4767,17 +4711,9 @@ declare global {
        */
       'cssClass'?: string | string[];
       /**
-       * If true, the loading indicator will dismiss when the page changes. Defaults to `false`.
-       */
-      'dismissOnPageChange'?: boolean;
-      /**
        * Number of milliseconds to wait before dismissing the loading indicator.
        */
       'duration'?: number;
-      /**
-       * If true, the loading indicator will be dismissed when the backdrop is clicked. Defaults to `false`.
-       */
-      'enableBackdropDismiss'?: boolean;
       /**
        * Animation to use when the loading indicator is presented.
        */
@@ -4903,7 +4839,7 @@ declare global {
       /**
        * If true, swiping the menu is enabled. Default `true`.
        */
-      'swipeEnabled'?: boolean;
+      'swipeGesture'?: boolean;
       /**
        * The display type of the menu. Available options: `"overlay"`, `"reveal"`, `"push"`.
        */
@@ -4915,6 +4851,10 @@ declare global {
     }
 
     export interface IonModalAttributes extends HTMLAttributes {
+      /**
+       * If true, the modal will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss'?: boolean;
       /**
        * The component to display inside of the modal.
        */
@@ -4928,10 +4868,6 @@ declare global {
        */
       'cssClass'?: string | string[];
       'delegate'?: FrameworkDelegate;
-      /**
-       * If true, the modal will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss'?: boolean;
       /**
        * Animation to use when the modal is presented.
        */
@@ -5031,7 +4967,7 @@ declare global {
       /**
        * If the nav component should allow for swipe-to-go-back
        */
-      'swipeBackEnabled'?: boolean;
+      'swipeGesture'?: boolean;
     }
 
     export interface IonNoteAttributes extends HTMLAttributes {
@@ -5047,10 +4983,6 @@ declare global {
 
     export interface IonPickerColumnAttributes extends HTMLAttributes {
       'col'?: PickerColumn;
-      /**
-       * Emitted when the selected option has changed.
-       */
-      'onIonChange'?: (event: CustomEvent<void>) => void;
     }
 
     export interface IonPickerControllerAttributes extends HTMLAttributes {
@@ -5058,6 +4990,10 @@ declare global {
     }
 
     export interface IonPickerAttributes extends HTMLAttributes {
+      /**
+       * If true, the picker will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss'?: boolean;
       /**
        * Array of buttons to be displayed at the top of the picker.
        */
@@ -5074,10 +5010,6 @@ declare global {
        * Number of milliseconds to wait before dismissing the picker.
        */
       'duration'?: number;
-      /**
-       * If true, the picker will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss'?: boolean;
       /**
        * Animation to use when the picker is presented.
        */
@@ -5131,6 +5063,10 @@ declare global {
 
     export interface IonPopoverAttributes extends HTMLAttributes {
       /**
+       * If true, the popover will be dismissed when the backdrop is clicked. Defaults to `true`.
+       */
+      'backdropDismiss'?: boolean;
+      /**
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color'?: Color;
@@ -5147,10 +5083,6 @@ declare global {
        */
       'cssClass'?: string | string[];
       'delegate'?: FrameworkDelegate;
-      /**
-       * If true, the popover will be dismissed when the backdrop is clicked. Defaults to `true`.
-       */
-      'enableBackdropDismiss'?: boolean;
       /**
        * Animation to use when the popover is presented.
        */
@@ -5209,9 +5141,6 @@ declare global {
 
     export interface IonRadioGroupAttributes extends HTMLAttributes {
       'allowEmptySelection'?: boolean;
-      /**
-       * Indicates that the user cannot interact with the control.
-       */
       'disabled'?: boolean;
       /**
        * The name of the control, which is submitted with the form data.
@@ -5220,7 +5149,7 @@ declare global {
       /**
        * Emitted when the value has changed.
        */
-      'onIonChange'?: (event: CustomEvent<InputChangeEvent>) => void;
+      'onIonChange'?: (event: CustomEvent<TextInputChangeEvent>) => void;
       /**
        * the value of the radio group.
        */
@@ -5236,9 +5165,6 @@ declare global {
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color'?: Color;
-      /**
-       * Indicates that the user cannot interact with the control.
-       */
       'disabled'?: boolean;
       /**
        * The mode determines which platform styles to use. Possible values are: `"ios"` or `"md"`.
@@ -5278,20 +5204,6 @@ declare global {
       'value'?: string;
     }
 
-    export interface IonRangeKnobAttributes extends HTMLAttributes {
-      'disabled'?: boolean;
-      'knob'?: Knob;
-      'labelId'?: string;
-      'max'?: number;
-      'min'?: number;
-      'onIonDecrease'?: (event: CustomEvent) => void;
-      'onIonIncrease'?: (event: CustomEvent) => void;
-      'pin'?: boolean;
-      'pressed'?: boolean;
-      'ratio'?: number;
-      'value'?: number;
-    }
-
     export interface IonRangeAttributes extends HTMLAttributes {
       /**
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
@@ -5301,9 +5213,6 @@ declare global {
        * How long, in milliseconds, to wait to trigger the `ionChange` event after each change in the range value. Default `0`.
        */
       'debounce'?: number;
-      /**
-       * Indicates that the user cannot interact with the control.
-       */
       'disabled'?: boolean;
       /**
        * Show two knobs. Defaults to `false`.
@@ -5332,7 +5241,7 @@ declare global {
       /**
        * Emitted when the value property has changed.
        */
-      'onIonChange'?: (event: CustomEvent<RangeInputChangeEvent>) => void;
+      'onIonChange'?: (event: CustomEvent<InputChangeEvent>) => void;
       /**
        * Emitted when the range has focus.
        */
@@ -5546,7 +5455,7 @@ declare global {
       /**
        * Emitted when the value has changed.
        */
-      'onIonChange'?: (event: CustomEvent<InputChangeEvent>) => void;
+      'onIonChange'?: (event: CustomEvent<TextInputChangeEvent>) => void;
       /**
        * Emitted when the clear input button is clicked.
        */
@@ -5622,7 +5531,7 @@ declare global {
       /**
        * Emitted when the value property has changed.
        */
-      'onIonChange'?: (event: CustomEvent<InputChangeEvent>) => void;
+      'onIonChange'?: (event: CustomEvent<TextInputChangeEvent>) => void;
       /**
        * the value of the segment.
        */
@@ -5893,21 +5802,6 @@ declare global {
       'when'?: string | boolean;
     }
 
-    export interface IonTabButtonAttributes extends HTMLAttributes {
-      'badge'?: string;
-      'badgeColor'?: string;
-      'color'?: Color;
-      'disabled'?: boolean;
-      'href'?: string;
-      'icon'?: string;
-      'label'?: string;
-      'mode'?: Mode;
-      /**
-       * If true, the tab button will be selected. Defaults to `false`.
-       */
-      'selected'?: boolean;
-    }
-
     export interface IonTabAttributes extends HTMLAttributes {
       /**
        * If true, sets the tab as the active tab.
@@ -5938,7 +5832,7 @@ declare global {
        */
       'disabled'?: boolean;
       /**
-       * The URL which will be used as the `href` within this tab's `<ion-tab-button>` anchor.
+       * The URL which will be used as the `href` within this tab's button anchor.
        */
       'href'?: string;
       /**
@@ -6076,10 +5970,6 @@ declare global {
        */
       'autocapitalize'?: string;
       /**
-       * Indicates whether the value of the control can be automatically completed by the browser. Defaults to `"off"`.
-       */
-      'autocomplete'?: string;
-      /**
        * This Boolean attribute lets you specify that a form control should have input focus when the page loads. Defaults to `false`.
        */
       'autofocus'?: boolean;
@@ -6126,7 +6016,7 @@ declare global {
       /**
        * Emitted when the input value has changed.
        */
-      'onIonChange'?: (event: CustomEvent<InputChangeEvent>) => void;
+      'onIonChange'?: (event: CustomEvent<TextInputChangeEvent>) => void;
       /**
        * Emitted when the input has focus.
        */
@@ -6178,10 +6068,6 @@ declare global {
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color'?: Color;
-      /**
-       * The mode determines which platform styles to use. Possible values are: `"ios"` or `"md"`.
-       */
-      'mode'?: Mode;
     }
 
     export interface IonToastControllerAttributes extends HTMLAttributes {
@@ -6266,9 +6152,6 @@ declare global {
        * The color to use from your application's color palette. Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`. For more information on colors, see [theming](/docs/theming/basics).
        */
       'color'?: Color;
-      /**
-       * Indicates that the user cannot interact with the control.
-       */
       'disabled'?: boolean;
       /**
        * The mode determines which platform styles to use. Possible values are: `"ios"` or `"md"`.
@@ -6411,7 +6294,6 @@ declare global {
     'ion-popover': HTMLIonPopoverElement
     'ion-radio-group': HTMLIonRadioGroupElement
     'ion-radio': HTMLIonRadioElement
-    'ion-range-knob': HTMLIonRangeKnobElement
     'ion-range': HTMLIonRangeElement
     'ion-refresher-content': HTMLIonRefresherContentElement
     'ion-refresher': HTMLIonRefresherElement
@@ -6435,7 +6317,6 @@ declare global {
     'ion-slides': HTMLIonSlidesElement
     'ion-spinner': HTMLIonSpinnerElement
     'ion-split-pane': HTMLIonSplitPaneElement
-    'ion-tab-button': HTMLIonTabButtonElement
     'ion-tab': HTMLIonTabElement
     'ion-tabbar': HTMLIonTabbarElement
     'ion-tabs': HTMLIonTabsElement
@@ -6516,7 +6397,6 @@ declare global {
     'ion-popover': HTMLIonPopoverElement;
     'ion-radio-group': HTMLIonRadioGroupElement;
     'ion-radio': HTMLIonRadioElement;
-    'ion-range-knob': HTMLIonRangeKnobElement;
     'ion-range': HTMLIonRangeElement;
     'ion-refresher-content': HTMLIonRefresherContentElement;
     'ion-refresher': HTMLIonRefresherElement;
@@ -6540,7 +6420,6 @@ declare global {
     'ion-slides': HTMLIonSlidesElement;
     'ion-spinner': HTMLIonSpinnerElement;
     'ion-split-pane': HTMLIonSplitPaneElement;
-    'ion-tab-button': HTMLIonTabButtonElement;
     'ion-tab': HTMLIonTabElement;
     'ion-tabbar': HTMLIonTabbarElement;
     'ion-tabs': HTMLIonTabsElement;

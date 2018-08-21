@@ -1,4 +1,4 @@
-import { Component, Element, Event, EventEmitter, Prop, QueueApi } from '@stencil/core';
+import { Component, Element, Prop, QueueApi } from '@stencil/core';
 
 import { Gesture, GestureDetail, Mode, PickerColumn } from '../../interface';
 import { hapticSelectionChanged } from '../../utils';
@@ -29,11 +29,6 @@ export class PickerColumnCmp {
   @Prop({ context: 'queue' }) queue!: QueueApi;
 
   @Prop() col!: PickerColumn;
-
-  /**
-   * Emitted when the selected option has changed.
-   */
-  @Event() ionChange!: EventEmitter<void>;
 
   componentWillLoad() {
     let pickerRotateFactor = 0;
@@ -80,7 +75,6 @@ export class PickerColumnCmp {
     // set what y position we're at
     cancelAnimationFrame(this.rafId);
     this.update(y, duration, true);
-    this.ionChange.emit();
   }
 
   private update(y: number, duration: number, saveY: boolean) {
@@ -187,8 +181,6 @@ export class PickerColumnCmp {
       if (notLockedIn) {
         // isn't locked in yet, keep decelerating until it is
         this.rafId = requestAnimationFrame(() => this.decelerate());
-      } else {
-        this.ionChange.emit();
       }
 
     } else if (this.y % this.optHeight !== 0) {

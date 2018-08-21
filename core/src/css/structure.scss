@@ -45,7 +45,7 @@ body {
 
   word-wrap: break-word;
 
-  overscroll-behavior-y: contain;
+  overscroll-behavior-y: none;
 
   text-size-adjust: none;
 }
@@ -79,6 +79,7 @@ ion-alert-controller,
 ion-loading-controller,
 ion-modal-controller,
 ion-picker-controller,
+ion-popover-controller,
 ion-toast-controller,
 .ion-page-hidden,
 [hidden] {

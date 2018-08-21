@@ -41,11 +41,6 @@ export class Tabbar {
   /** The tabs to render */
   @Prop() tabs: HTMLIonTabElement[] = [];
 
-  @Watch('selectedTab')
-  selectedTabChanged() {
-    this.updateHighlight();
-  }
-
   /**
    * If true, show the tab highlight bar under the selected tab.
    */
@@ -71,27 +66,23 @@ export class Tabbar {
     }
   }
 
-  @Listen('window:resize')
-  onResize() {
-    this.updateHighlight();
-  }
-
   componentDidLoad() {
     this.updateHighlight();
   }
 
-  private getSelectedButton(): HTMLIonTabButtonElement | undefined {
-    return Array.from(this.el.querySelectorAll('ion-tab-button'))
-      .find(btn => btn.selected);
+  private getSelectedButton(): HTMLElement | null {
+    return this.el.shadowRoot!.querySelector('.tab-btn-selected');
   }
 
+  @Watch('selectedTab')
+  @Listen('window:resize')
   private updateHighlight() {
     if (!this.highlight) {
       return;
     }
     this.queue.read(() => {
       const btn = this.getSelectedButton();
-      const highlight = this.el.querySelector('div.tabbar-highlight') as HTMLElement;
+      const highlight = this.el.shadowRoot!.querySelector('.tabbar-highlight') as HTMLElement;
       if (btn && highlight) {
         highlight.style.transform = `translate3d(${btn.offsetLeft}px,0,0) scaleX(${btn.offsetWidth})`;
       }
@@ -113,33 +104,46 @@ export class Tabbar {
     };
   }
 
-  render() {
-    const selectedTab = this.selectedTab;
+  renderTabButton(tab: HTMLIonTabElement) {
+    const { icon, label, disabled, badge, badgeColor, href } = tab;
+    const selected = tab === this.selectedTab;
+    const hasLabel = !!label;
+    const hasIcon = !!icon;
+    return (
+      <a
+        role="tab"
+        ion-activable
+        aria-selected={selected ? 'true' : null}
+        href={href || '#'}
+        class={{
+          'tab-btn': true,
+          'tab-btn-selected': selected,
+          'tab-btn-has-label': hasLabel,
+          'tab-btn-has-icon': hasIcon,
+          'tab-btn-has-label-only': hasLabel && !hasIcon,
+          'tab-btn-has-icon-only': hasIcon && !hasLabel,
+          'tab-btn-has-badge': !!badge,
+          'tab-btn-disabled': disabled,
+          'tab-btn-hidden': !tab.show
+        }}
+        onClick={ev => {
+          if (!tab.disabled) {
+            this.ionTabbarClick.emit(tab);
+          }
+          ev.stopPropagation();
+          ev.preventDefault();
+        }}>
+          { icon && <ion-icon class="tab-btn-icon" icon={icon} lazy={false}></ion-icon> }
+          { label && <span class="tab-btn-text">{label}</span> }
+          { badge && <ion-badge class="tab-btn-badge" color={badgeColor}>{badge}</ion-badge> }
+          { this.mode === 'md' && <ion-ripple-effect tapClick={true}></ion-ripple-effect> }
+      </a>
+    );
+  }
 
+  render() {
     return [
-      this.tabs.map(tab => (
-        <ion-tab-button
-          id={tab.btnId}
-          label={tab.label}
-          icon={tab.icon}
-          badge={tab.badge}
-          disabled={tab.disabled}
-          badgeColor={tab.badgeColor}
-          href={tab.href}
-          selected={selectedTab === tab}
-          mode={this.mode}
-          color={this.color}
-          aria-hidden={ !tab.show ? 'true' : null }
-          class={{ 'tab-hidden': !tab.show }}
-          onClick={ev => {
-            if (!tab.disabled) {
-              this.ionTabbarClick.emit(tab);
-            }
-            ev.stopPropagation();
-            ev.preventDefault();
-          }}
-        />
-      )),
+      this.tabs.map(tab => this.renderTabButton(tab)),
       this.highlight && <div class="animated tabbar-highlight" />
     ];
   }

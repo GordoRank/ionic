@@ -142,17 +142,18 @@ export class Content {
 
   private onScroll(ev: UIEvent) {
     const timeStamp = Date.now();
-    const didStart = !this.isScrolling;
+    const shouldStart = !this.isScrolling;
     this.lastScroll = timeStamp;
-    if (didStart) {
+    if (shouldStart) {
       this.onScrollStart();
+
     }
     if (!this.queued && this.scrollEvents) {
       this.queued = true;
       this.queue.read(ts => {
         this.queued = false;
         this.detail.event = ev;
-        updateScrollDetail(this.detail, this.el, ts, didStart);
+        updateScrollDetail(this.detail, this.scrollEl, ts, shouldStart);
         this.ionScroll.emit(this.detail);
       });
     }
@@ -167,15 +168,15 @@ export class Content {
    * Scroll to the top of the component
    */
   @Method()
-  scrollToTop(duration = 100): Promise<void> {
-    return this.scrollToPoint(0, undefined, duration);
+  scrollToTop(duration = 0): Promise<void> {
+    return this.scrollToPoint(undefined, 0, duration);
   }
 
   /**
    * Scroll to the bottom of the component
    */
   @Method()
-  scrollToBottom(duration = 100): Promise<void> {
+  scrollToBottom(duration = 0): Promise<void> {
     const y = this.scrollEl.scrollHeight - this.scrollEl.clientHeight;
     return this.scrollToPoint(undefined, y, duration);
   }
@@ -205,7 +206,7 @@ export class Content {
     }
 
     let resolve!: () => void;
-    let startTime: number;
+    let startTime = 0;
     const promise = new Promise<void>(r => resolve = r);
     const fromY = el.scrollTop;
     const fromX = el.scrollLeft;
@@ -215,11 +216,11 @@ export class Content {
 
     // scroll loop
     const step = (timeStamp: number) => {
-      let linearTime = Math.min(1, ((timeStamp - startTime) / duration));
-      const easedT = (--linearTime) * linearTime * linearTime + 1;
+      const linearTime = Math.min(1, ((timeStamp - startTime) / duration)) - 1;
+      const easedT = Math.pow(linearTime, 3) + 1;
 
       if (deltaY !== 0) {
-        el.scrollTop = (easedT * deltaY) + fromY;
+        el.scrollTop = Math.floor((easedT * deltaY) + fromY);
       }
       if (deltaX !== 0) {
         el.scrollLeft = Math.floor((easedT * deltaX) + fromX);
@@ -232,14 +233,9 @@ export class Content {
         requestAnimationFrame(step);
 
       } else {
-        this.isScrolling = false;
         resolve();
       }
     };
-
-    // start scroll loop
-    this.isScrolling = true;
-
     // chill out for a frame first
     requestAnimationFrame(ts => {
       startTime = ts;
@@ -337,16 +333,16 @@ function getPageElement(el: HTMLElement) {
 // ******** DOM READ ****************
 function updateScrollDetail(
   detail: ScrollDetail,
-  el: HTMLElement,
+  el: Element,
   timestamp: number,
-  didStart: boolean
+  shouldStart: boolean
 ) {
   const prevX = detail.currentX;
   const prevY = detail.currentY;
   const prevT = detail.timeStamp;
   const currentX = el.scrollLeft;
   const currentY = el.scrollTop;
-  if (didStart) {
+  if (shouldStart) {
     // remember the start positions
     detail.startTimeStamp = timestamp;
     detail.startX = currentX;

@@ -1,8 +1,8 @@
 import { Component, Element, Event, EventEmitter, Listen, Method, Prop, Watch } from '@stencil/core';
 
-import { AlertButton, AlertInput, Animation, AnimationBuilder, Color, Config, CssClassMap, Mode, OverlayEventDetail, OverlayInterface } from '../../interface';
+import { AlertButton, AlertInput, Animation, AnimationBuilder, Config, CssClassMap, Mode, OverlayEventDetail, OverlayInterface } from '../../interface';
 import { BACKDROP, dismiss, eventMethod, isCancel, present } from '../../utils/overlays';
-import { createColorClasses, getClassMap } from '../../utils/theme';
+import { getClassMap } from '../../utils/theme';
 
 import { iosEnterAnimation } from './animations/ios.enter';
 import { iosLeaveAnimation } from './animations/ios.leave';
@@ -27,7 +27,6 @@ export class Alert implements OverlayInterface {
   presented = false;
   animation?: Animation;
 
-  color!: Color;
   @Prop() mode!: Mode;
 
   @Element() el!: HTMLStencilElement;
@@ -81,7 +80,7 @@ export class Alert implements OverlayInterface {
   /**
    * If true, the alert will be dismissed when the backdrop is clicked. Defaults to `true`.
    */
-  @Prop() enableBackdropDismiss = true;
+  @Prop() backdropDismiss = true;
 
   /**
    * If true, the alert will be translucent. Defaults to `false`.
@@ -399,7 +398,6 @@ export class Alert implements OverlayInterface {
         zIndex: 20000 + this.overlayId,
       },
       class: {
-        ...createColorClasses(this.color),
         ...getClassMap(this.cssClass),
         'alert-translucent': this.translucent
       }
@@ -415,7 +413,7 @@ export class Alert implements OverlayInterface {
     return (
       <div class={alertButtonGroupClass}>
         {buttons.map(button =>
-          <button type="button" class={buttonClass(button)} tabIndex={0} onClick={() => this.buttonClick(button)}>
+          <button type="button" ion-activable class={buttonClass(button)} tabIndex={0} onClick={() => this.buttonClick(button)}>
             <span class="alert-button-inner">
               {button.text}
             </span>
@@ -438,7 +436,7 @@ export class Alert implements OverlayInterface {
     }
 
     return [
-      <ion-backdrop tappable={this.enableBackdropDismiss}/>,
+      <ion-backdrop tappable={this.backdropDismiss}/>,
 
       <div class="alert-wrapper">
 

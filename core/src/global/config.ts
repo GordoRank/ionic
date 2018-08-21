@@ -6,6 +6,7 @@ export interface IonicConfig {
    * Possible values are: `"ios"` or `"md"`.
    */
   mode?: Mode;
+  persistConfig?: boolean;
 
   isDevice?: boolean;
   statusbarPadding?: boolean;
@@ -22,7 +23,7 @@ export interface IonicConfig {
   menuType?: string;
   scrollPadding?: string;
   inputBlurring?: string;
-  scrollAssist?: string;
+  scrollAssist?: boolean;
   hideCaretOnScroll?: string;
   infiniteLoadingSpinner?: string;
   keyboardHeight?: number;

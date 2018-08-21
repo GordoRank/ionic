@@ -1,6 +1,6 @@
 import { Component, Element, Event, EventEmitter, Prop, State, Watch } from '@stencil/core';
 
-import { Color, InputChangeEvent, Mode, StyleEvent } from '../../interface';
+import { Color, Mode, StyleEvent, TextInputChangeEvent } from '../../interface';
 import { debounceEvent, deferEvent, renderHiddenInput } from '../../utils/helpers';
 import { createColorClasses } from '../../utils/theme';
 import { TextareaComponent } from '../input/input-base';
@@ -27,7 +27,7 @@ export class Textarea implements TextareaComponent {
   /**
    * Emitted when the input value has changed.
    */
-  @Event() ionChange!: EventEmitter<InputChangeEvent>;
+  @Event() ionChange!: EventEmitter<TextInputChangeEvent>;
 
   /**
    * Emitted when a keyboard input ocurred.
@@ -66,11 +66,6 @@ export class Textarea implements TextareaComponent {
    * Indicates whether and how the text value should be automatically capitalized as it is entered/edited by the user. Defaults to `"none"`.
    */
   @Prop() autocapitalize = 'none';
-
-  /**
-   * Indicates whether the value of the control can be automatically completed by the browser. Defaults to `"off"`.
-   */
-  @Prop() autocomplete = 'off';
 
   /**
    * This Boolean attribute lets you specify that a form control should have input focus when the page loads. Defaults to `false`.
@@ -256,7 +251,6 @@ export class Textarea implements TextareaComponent {
         class="native-textarea"
         ref={el => this.inputEl = el as HTMLTextAreaElement}
         autoCapitalize={this.autocapitalize}
-        // autoComplete={this.autocomplete}
         autoFocus={this.autofocus}
         disabled={this.disabled}
         maxLength={this.maxlength}
